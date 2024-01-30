@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model healthProblem {
+  id        String   @id @default(uuid())
+  name      String
+  degree    Int
+  updatedAt DateTime @default(now()) @updatedAt
+  clientId  String
+  Client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("healthProblem")
+}
+
+model Client {
+  id             String          @id @default(uuid())
+  name           String
+  birthDate      DateTime
+  sex            String
+  createdAt      DateTime        @default(now())
+  healthProblems healthProblem[]
+
+  @@map("client")
+}
