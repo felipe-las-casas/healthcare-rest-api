@@ -10,7 +10,7 @@ app.post('/health-problem', async (req, res) => {
     try {
         const { name, degree, clientId } = req.body;
         
-        if (degree > 2) {
+        if (degree != 2 || degree != 1) {
           return res.status(404).json({"message": "invalid data"})
         }
         const clientUpdate = await prisma.healthProblem.create({
@@ -33,6 +33,10 @@ app.put('/health-problem/:id', async (req, res) => {
     try {
       const { name, degree } = req.body
       const { id } = req.params
+      
+      if (degree != 2 || degree != 1) {
+        return res.status(404).json({"message": "invalid data"})
+      }
 
       const hp = await prisma.healthProblem.update({
         where: {
@@ -43,14 +47,8 @@ app.put('/health-problem/:id', async (req, res) => {
           degree,
         },
       })
-      if (degree == 1 || degree == 2) {
-        res.json(hp)
-      }
-      else {
-        res.status(500).json({
-          message: "Invalid value",
-        })
-      }
+      res.status(201).json(hp)
+
     }
     catch(error) {
       res.status(500).json({
@@ -114,6 +112,16 @@ app.delete(`/client/:id`, async (req, res) => {
   res.json(deleteClient)
 })
 
+app.delete(`/health-problem/:id`, async (req, res) => {
+  const { id } = req.params
+  const deleteHealthProblem = await prisma.healthProblem.delete({
+    where: {
+      id: id
+    },
+  })
+  res.json(deleteHealthProblem)
+})
+
 app.post(`/client`, async (req, res) => {
     const { name, birthDate, sex } = req.body
     const result = await prisma.client.create({
@@ -147,46 +155,4 @@ app.get('/critical-clients', async (req, res) => {
     res.json(tenCritical)
 })
 
-async function main() {
-
-    const newUser = await prisma.client.create({
-        data: {
-          name: "João Lopes",
-          birthDate: "1997-07-16T19:20:30.451Z",
-          sex: "Male",
-
-        },
-      });
-    
-      console.log("New User:");
-      console.log(newUser);
-
-      const disease = await prisma.healthProblem.create({
-        data: {
-          name: "ASD",
-          degree: 1,
-          clientId: newUser.id,
-        },
-      });
-    
-      console.log("First tweet:");
-      console.log(disease);
-
-      const newUserWithDisease = await prisma.client.findUnique({
-        where: {
-          name: "João Lopes",
-          id: newUser.id
-        },
-        include: { healthProblems: true },
-      });
-    
-      console.log("User object with Disease:");
-      console.dir(newUserWithDisease);
-
-}
-
-const server = app.listen(3000, () =>
-  console.log(`
-🚀 Server ready at: http://localhost:3000
-⭐️ See sample requests: http://pris.ly/e/ts/rest-express#3-using-the-rest-api`),
-)
+app.listen(3000, () => console.log(`Server ready at: http://localhost:3000`))
